@@ -113,10 +113,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         topText += "&b" + aligned.first();
         bottomText += "&b" + aligned.second();
 
-        updateHologram(
-            monitor,
-            ChatColors.color(topText),
-            ChatColors.color(bottomText));
+        updateHologram(monitor, topText, bottomText);
     }
 
     private static final double NANO_TO_MILLI = 1_000_000.0D;
@@ -146,22 +143,26 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
     private static Pair<String, String> alignBothMiddle(String a, String b) {
         if (a.length() != b.length()) {
             int g = Math.max(0, 9 - Math.max(a.length(), b.length()));
-            String s1 = " ".repeat(lp(g));
-            String s2 = " ".repeat(lp(g));
+            String s1 = space(lp(g));
+            String s2 = space(lp(g));
             if (a.length() > b.length()) {
-                float total = (a.length() - b.length()) / 2.0f;
-                s1 += " ".repeat(lp(total)) + a + " ".repeat(rp(total));
+                float total = (a.length() - b.length());
+                s1 += space(lp(total)) + a + space(rp(total));
                 s2 += b;
             } else {
-                float total = (b.length() - a.length()) / 2.0f;
+                float total = (b.length() - a.length());
                 s1 += a;
-                s2 += " ".repeat(lp(total)) + b + " ".repeat(rp(total));
+                s2 += space(lp(total)) + b + space(rp(total));
             }
-            s1 += " ".repeat(rp(g));
-            s2 += " ".repeat(rp(g));
+            s1 += space(rp(g));
+            s2 += space(rp(g));
             return Pair.of(s1, s2);
         }
         return Pair.of(a, b);
+    }
+
+    private static String space(int n) {
+        return " ".repeat(n);
     }
 
     private void unlisten(Location target) {
@@ -300,5 +301,10 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             case BS_DOWN -> BlockFace.DOWN;
             default -> BlockFace.DOWN;
         };
+    }
+
+    @Override
+    public Vector getHologramOffset(Block block) {
+        return new Vector(0.5, 0.9, 0.5);
     }
 }

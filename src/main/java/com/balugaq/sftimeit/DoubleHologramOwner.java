@@ -48,7 +48,7 @@ public interface DoubleHologramOwner extends ItemAttribute {
     }
 
     default Vector getTopHologramOffset(Block block) {
-        return getHologramOffset(block).add(new Vector(0.0, getHologramSpacing(), 0.0));
+        return getHologramOffset(block).clone().add(new Vector(0.0, getHologramSpacing(), 0.0));
     }
 
     default Vector getBottomHologramOffset(Block block) {
