@@ -6,6 +6,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler;
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
@@ -21,6 +22,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -54,7 +56,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         "BBBBBBBBB",
         "BBBNBBUBB",
         "BBWBEBBBB",
-        "BBBSBBPBB",
+        "BBBSBBDBB",
         "BBBBBBBBB"
     )
         .addItem("B", ChestMenuUtils.getBackground())
@@ -63,7 +65,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         .addItem("E", ChestMenuUtils.getBackground())
         .addItem("S", ChestMenuUtils.getBackground())
         .addItem("U", ChestMenuUtils.getBackground())
-        .addItem("P", ChestMenuUtils.getBackground());
+        .addItem("D", ChestMenuUtils.getBackground());
 
     private static final Object2BooleanOpenHashMap<Location> FIRST_TICK = new Object2BooleanOpenHashMap<>();
     static {
@@ -84,22 +86,30 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         Pair<String, String> aligned;
         BlockSetting data = SlimefunTimeit.monitor().getData(target);
 
+        if (data.tickedTimes == 0) {
+            updateHologram(
+                monitor,
+                ChatColors.color("&a  min &7/&e  avg &7/&c  max &7/&b  cur "),
+                ChatColors.color("&a0.00ms&7/&e0.00ms&7/&c0.00ms&7/&b0.00ms"));
+            return;
+        }
+
         String topText = "";
         String bottomText = "";
 
-        aligned = alignBothMiddle("min", "" + data.timingNanosMin);
-        topText += "&a" + aligned.first() + "/";
-        bottomText += "&a" + aligned.second() + "/";
+        aligned = alignBothMiddle("min", toString(round(data.timingNanosMin / NANO_TO_MILLI, 2)));
+        topText += "&a" + aligned.first() + "&7/";
+        bottomText += "&a" + aligned.second() + "&7/";
 
-        aligned = alignBothMiddle("avg", "" + data.timingNanosAverage);
-        topText += "&e" + aligned.first() + "/";
-        bottomText += "&e" + aligned.second() + "/";
+        aligned = alignBothMiddle("avg", toString(round(data.timingNanosAverage / NANO_TO_MILLI, 2)));
+        topText += "&e" + aligned.first() + "&7/";
+        bottomText += "&e" + aligned.second() + "&7/";
 
-        aligned = alignBothMiddle("max", "" + data.timingNanosMax);
-        topText += "&c" + aligned.first() + "/";
-        bottomText += "&c" + aligned.second() + "/";
+        aligned = alignBothMiddle("max", toString(round(data.timingNanosMax / NANO_TO_MILLI, 2)));
+        topText += "&c" + aligned.first() + "&7/";
+        bottomText += "&c" + aligned.second() + "&7/";
 
-        aligned = alignBothMiddle("current", "" + timeNanos);
+        aligned = alignBothMiddle("cur", toString(round(timeNanos / NANO_TO_MILLI, 2)));
         topText += "&b" + aligned.first();
         bottomText += "&b" + aligned.second();
 
@@ -107,6 +117,22 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             monitor,
             ChatColors.color(topText),
             ChatColors.color(bottomText));
+    }
+
+    private static final double NANO_TO_MILLI = 1_000_000.0D;
+    private static double round(double value, int places) {
+        if (places < 0) {
+            return value; // Don't throw exception
+        }
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
+
+    private static String toString(double value) {
+        return String.format("%.2fms", value);
     }
 
     private static int lp(float total) {
@@ -154,6 +180,10 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
                 if (!FIRST_TICK.getBoolean(monitor.getLocation())) {
                     listen(monitor, relative(monitor, data.getData(BS_TARGET_FACE)));
                 }
+                BlockMenu menu = data.getBlockMenu();
+                if (menu != null && menu.hasViewer()) {
+                    updateMenu(menu, monitor, data);
+                }
             }
         });
         addItemHandler(new BlockPlaceHandler(false) {
@@ -161,6 +191,15 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             public void onPlayerPlace(BlockPlaceEvent event) {
                 SlimefunBlockData data = StorageCacheUtils.getBlock(event.getBlock().getLocation());
                 data.setData(BS_TARGET_FACE, DEFAULT_FACE);
+            }
+        });
+        addItemHandler(new BlockBreakHandler(false, false) {
+            @Override
+            public void onPlayerBreak(BlockBreakEvent event, ItemStack itemStack, List<ItemStack> list) {
+                Block block = event.getBlock();
+                SlimefunBlockData data = StorageCacheUtils.getBlock(block.getLocation());
+                unlisten(relative(block, data.getData(BS_TARGET_FACE)));
+                removeHologram(block);
             }
         });
 
@@ -196,10 +235,10 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
                 unlisten(relative(monitor, data.getData(BS_TARGET_FACE)));
                 data.setData(BS_TARGET_FACE, face);
                 listen(monitor, relative(monitor, face));
+                updateMenu(menu, monitor, data);
                 return false;
             });
         }
-        updateHologram(monitor, relative(monitor, data.getData(BS_TARGET_FACE)), 0);
     }
 
     @SuppressWarnings("deprecation")
@@ -225,7 +264,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         }
 
         additionLore.add("");
-        additionLore.add(selected ? "&a已选择此机器" : "&7点击选择此机器");
+        additionLore.add(ChatColors.color(selected ? "&a已选择此机器" : "&7点击选择此机器"));
         stack.setLore(additionLore);
         return stack;
     }

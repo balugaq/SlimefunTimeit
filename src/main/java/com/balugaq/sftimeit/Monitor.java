@@ -48,30 +48,38 @@ public class Monitor {
     }
 
     public void listen(Location location, @Nullable MonitorStartAction startAction, @Nullable MonitorEndAction endAction) {
-        if (startAction != null) getData(location).startAction = startAction;
-        if (endAction != null) getData(location).endAction = endAction;
+        editData(location, data -> {
+            if (startAction != null) data.startAction = startAction;
+            if (endAction != null) data.endAction = endAction;
+        });
     }
 
     public void unlisten(Location location) {
-        getData(location).startAction = l -> {};
-        getData(location).endAction = (l, timeNanos) -> {};
+        editData(location, data -> {
+            data.startAction = l -> {};
+            data.endAction = (l, timeNanos) -> {};
+        });
     }
 
     public static void initialize() {
-        Field tickerField = Arrays.stream(SlimefunItem.class.getDeclaredFields()).filter(field -> field.getName().equals("blockTicker")).findFirst().get();
-        tickerField.setAccessible(true);
+        try {
+            Field tickerField = SlimefunItem.class.getDeclaredField("blockTicker");
+            tickerField.setAccessible(true);
 
-        SlimefunTimeit.runTaskLaterAsynchronously(() -> {
-            for (SlimefunItem item : Slimefun.getRegistry().getAllSlimefunItems()) {
-                BlockTicker ticker = item.getBlockTicker();
-                if (ticker != null) {
-                    try {
-                        tickerField.set(item, MonitoringBlockTicker.warp(ticker));
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+            SlimefunTimeit.runTaskLaterAsynchronously(() -> {
+                for (SlimefunItem item : Slimefun.getRegistry().getAllSlimefunItems()) {
+                    BlockTicker ticker = item.getBlockTicker();
+                    if (ticker != null) {
+                        try {
+                            tickerField.set(item, MonitoringBlockTicker.warp(ticker));
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        }, 1L);
+            }, 1L);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 }
