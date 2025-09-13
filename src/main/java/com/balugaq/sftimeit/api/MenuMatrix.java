@@ -1,4 +1,4 @@
-package com.balugaq.sftimeit;
+package com.balugaq.sftimeit.api;
 
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;

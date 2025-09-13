@@ -1,5 +1,7 @@
-package com.balugaq.sftimeit;
+package com.balugaq.sftimeit.api;
 
+import com.balugaq.sftimeit.core.Monitor;
+import com.balugaq.sftimeit.core.SlimefunTimeit;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import io.github.thebusybiscuit.slimefun4.api.exceptions.IncompatibleItemHandlerException;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemHandler;

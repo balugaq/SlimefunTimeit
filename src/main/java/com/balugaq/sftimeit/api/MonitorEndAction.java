@@ -1,4 +1,4 @@
-package com.balugaq.sftimeit;
+package com.balugaq.sftimeit.api;
 
 import org.bukkit.Location;
 

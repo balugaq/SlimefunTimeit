@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.balugaq.sftimeit</groupId>
     <artifactId>SlimefunTimeit</artifactId>
-    <version>1</version>
+    <version>3</version>
 
     <pluginRepositories>
         <pluginRepository>
@@ -152,18 +152,10 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Tools etc. -->
         <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>3.0.2</version>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Chinese localization library -->
-        <dependency>
-            <groupId>net.guizhanss</groupId>
-            <artifactId>GuizhanLibPlugin</artifactId>
-            <version>1.7.6</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

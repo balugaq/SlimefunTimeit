@@ -1,12 +1,10 @@
-package com.balugaq.sftimeit;
+package com.balugaq.sftimeit.api;
 
 
 import io.github.thebusybiscuit.slimefun4.core.attributes.ItemAttribute;
 import io.github.thebusybiscuit.slimefun4.core.services.holograms.HologramsService;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.blocks.HologramProjector;
-
-
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -44,11 +42,11 @@ public interface DoubleHologramOwner extends ItemAttribute {
     }
 
     default double getHologramSpacing() {
-        return 0.2;
+        return 0.3D;
     }
 
     default Vector getTopHologramOffset(Block block) {
-        return getHologramOffset(block).clone().add(new Vector(0.0, getHologramSpacing(), 0.0));
+        return getHologramOffset(block).clone().add(new Vector(0.0D, getHologramSpacing(), 0.0D));
     }
 
     default Vector getBottomHologramOffset(Block block) {

@@ -1,12 +1,13 @@
-package com.balugaq.sftimeit;
+package com.balugaq.sftimeit.api;
 
+import lombok.Data;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 import java.util.Objects;
 
 @NullMarked
-public class Pair<P, S> {
+public @Data class Pair<P, S> {
     private P firstValue;
     private S secondValue;
 
@@ -35,14 +36,6 @@ public class Pair<P, S> {
         return this.secondValue;
     }
 
-    public void setFirstValue(P firstValue) {
-        this.firstValue = firstValue;
-    }
-
-    public void setSecondValue(S secondValue) {
-        this.secondValue = secondValue;
-    }
-
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -56,12 +49,8 @@ public class Pair<P, S> {
     public int hashCode() {
         int prime = 59;
         int result = 1;
-        result = result * 59 + this.firstValue.hashCode();
-        result = result * 59 + this.secondValue.hashCode();
+        result = result * prime + this.firstValue.hashCode();
+        result = result * prime + this.secondValue.hashCode();
         return result;
-    }
-
-    public String toString() {
-        return "Pair(firstValue=" + this.firstValue + ", secondValue=" + this.secondValue + ")";
     }
 }

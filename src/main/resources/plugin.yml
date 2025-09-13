@@ -1,11 +1,9 @@
 name: SlimefunTimeit
 authors:
   - balugaq
-main: com.balugaq.sftimeit.SlimefunTimeit
+main: com.balugaq.sftimeit.core.SlimefunTimeit
 website: https://github.com/balugaq/SlimefunTimeit
 version: ${project.version}
 api-version: 1.20
 depend:
   - Slimefun
-softdepend:
-  - GuizhanLibPlugin
