@@ -103,8 +103,8 @@
                             <style>PALANTIR</style>
                         </palantirJavaFormat>
 
-                        <removeUnusedImports />
-                        <formatAnnotations />
+                        <removeUnusedImports/>
+                        <formatAnnotations/>
                     </java>
                 </configuration>
             </plugin>
