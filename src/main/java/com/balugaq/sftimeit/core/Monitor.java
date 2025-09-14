@@ -50,18 +50,16 @@ public class Monitor implements Listener {
             Field tickerField = SlimefunItem.class.getDeclaredField("blockTicker");
             tickerField.setAccessible(true);
 
-            SlimefunTimeit.runTaskLaterAsynchronously(() -> {
-                for (SlimefunItem item : Slimefun.getRegistry().getAllSlimefunItems()) {
-                    BlockTicker ticker = item.getBlockTicker();
-                    if (ticker != null && ticker instanceof MonitoringBlockTicker mbt) {
-                        try {
-                            tickerField.set(item, mbt.originTicker());
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
+            for (SlimefunItem item : Slimefun.getRegistry().getAllSlimefunItems()) {
+                BlockTicker ticker = item.getBlockTicker();
+                if (ticker != null && ticker instanceof MonitoringBlockTicker mbt) {
+                    try {
+                        tickerField.set(item, mbt.originTicker());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
                     }
                 }
-            }, 1L);
+            }
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
