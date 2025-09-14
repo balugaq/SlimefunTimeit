@@ -38,6 +38,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("DataFlowIssue")
 @NullMarked
 public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwner {
     public static final String BS_TARGET_FACE = "target-face";
@@ -84,6 +85,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         super(itemGroup, item, recipeType, recipe);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static double round(double value, int places) {
         if (places < 0) {
             return value; // Don't throw exception
@@ -99,37 +101,38 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         return String.format("%.2fms", value);
     }
 
-    private static int lp(float total) {
-        return (int) total / 2;
-    }
+    public static String[] alignStrings(String a, String b) {
+        int lenA = a.length();
+        int lenB = b.length();
 
-    private static int rp(float total) {
-        return (int) Math.ceil(total) - lp(total);
-    }
-
-    private static Pair<String, String> alignBothMiddle(String a, String b) {
-        if (a.length() != b.length()) {
-            int g = Math.max(0, 9 - Math.max(a.length(), b.length()));
-            String s1 = space(lp(g));
-            String s2 = space(lp(g));
-            if (a.length() > b.length()) {
-                float total = (a.length() - b.length());
-                s1 += space(lp(total)) + a + space(rp(total));
-                s2 += b;
-            } else {
-                float total = (b.length() - a.length());
-                s1 += a;
-                s2 += space(lp(total)) + b + space(rp(total));
-            }
-            s1 += space(rp(g));
-            s2 += space(rp(g));
-            return Pair.of(s1, s2);
+        if (lenA == lenB) {
+            return new String[]{a, b};
         }
-        return Pair.of(a, b);
+
+        int targetLength = Math.max(lenA, lenB);
+
+        String adjustedA = a;
+        String adjustedB = b;
+
+        if (lenA < targetLength) {
+            adjustedA = centerString(a, targetLength);
+        } else {
+            adjustedB = centerString(b, targetLength);
+        }
+
+        return new String[]{adjustedA, adjustedB};
     }
 
-    private static String space(int n) {
-        return " ".repeat(n);
+    private static String centerString(String str, int targetLength) {
+        int strLength = str.length();
+        int totalSpaces = targetLength - strLength;
+
+        int leftSpaces = totalSpaces / 2;
+        int rightSpaces = totalSpaces - leftSpaces;
+
+        return " ".repeat(Math.max(0, leftSpaces)) +
+            str +
+            " ".repeat(Math.max(0, rightSpaces));
     }
 
     @SuppressWarnings("deprecation")
@@ -181,7 +184,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
     }
 
     private static BlockFace warp2BlockFace(@Nullable String face) {
-        if (face == null) return BlockFace.DOWN;
+        if (face == null) return warp2BlockFace(DEFAULT_FACE);
         return switch (face) {
             case BS_NORTH -> BlockFace.NORTH;
             case BS_EAST -> BlockFace.EAST;
@@ -189,10 +192,11 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             case BS_WEST -> BlockFace.WEST;
             case BS_UP -> BlockFace.UP;
             case BS_DOWN -> BlockFace.DOWN;
-            default -> BlockFace.DOWN;
+            default -> warp2BlockFace(DEFAULT_FACE);
         };
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private void listen(Block monitor, Location target) {
         SlimefunTimeit.monitor().listen(target, null, (location, timeNanos) -> {
             updateHologram(monitor, target, timeNanos);
@@ -200,7 +204,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
     }
 
     private void updateHologram(Block monitor, Location target, long timeNanos) {
-        Pair<String, String> aligned;
+        String[] aligned;
         BlockSetting data = SlimefunTimeit.monitor().getData(target);
 
         if (data.tickedTimes == 0) {
@@ -214,21 +218,21 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         String topText = "";
         String bottomText = "";
 
-        aligned = alignBothMiddle("min", toString(round(data.timingNanosMin / NANO_TO_MILLI, 2)));
-        topText += "&a" + aligned.first() + "&7/";
-        bottomText += "&a" + aligned.second() + "&7/";
+        aligned = alignStrings("min", toString(round(data.timingNanosMin / NANO_TO_MILLI, 2)));
+        topText += "&a" + aligned[0] + "&7/";
+        bottomText += "&a" + aligned[1] + "&7/";
 
-        aligned = alignBothMiddle("avg", toString(round(data.timingNanosAverage / NANO_TO_MILLI, 2)));
-        topText += "&e" + aligned.first() + "&7/";
-        bottomText += "&e" + aligned.second() + "&7/";
+        aligned = alignStrings("avg", toString(round(data.timingNanosAverage / NANO_TO_MILLI, 2)));
+        topText += "&e" + aligned[0] + "&7/";
+        bottomText += "&e" + aligned[1] + "&7/";
 
-        aligned = alignBothMiddle("max", toString(round(data.timingNanosMax / NANO_TO_MILLI, 2)));
-        topText += "&c" + aligned.first() + "&7/";
-        bottomText += "&c" + aligned.second() + "&7/";
+        aligned = alignStrings("max", toString(round(data.timingNanosMax / NANO_TO_MILLI, 2)));
+        topText += "&c" + aligned[0] + "&7/";
+        bottomText += "&c" + aligned[1] + "&7/";
 
-        aligned = alignBothMiddle("cur", toString(round(timeNanos / NANO_TO_MILLI, 2)));
-        topText += "&b" + aligned.first();
-        bottomText += "&b" + aligned.second();
+        aligned = alignStrings("cur", toString(round(timeNanos / NANO_TO_MILLI, 2)));
+        topText += "&b" + aligned[0];
+        bottomText += "&b" + aligned[1];
 
         updateHologram(monitor, topText, bottomText);
     }
