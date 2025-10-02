@@ -38,7 +38,6 @@ import org.jspecify.annotations.NullMarked;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("DataFlowIssue")
 @NullMarked
 public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwner {
     public static final String BS_TARGET_FACE = "target-face";
