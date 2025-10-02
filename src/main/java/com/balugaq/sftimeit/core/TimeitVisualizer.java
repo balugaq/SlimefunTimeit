@@ -5,8 +5,6 @@ import com.balugaq.sftimeit.api.DoubleHologramOwner;
 import com.balugaq.sftimeit.api.MenuMatrix;
 import com.balugaq.sftimeit.api.Pair;
 import com.balugaq.sftimeit.util.Icons;
-import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
-import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -18,7 +16,9 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
@@ -140,7 +140,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         ItemStack stack;
         List<String> additionLore;
 
-        SlimefunItem sf = StorageCacheUtils.getSfItem(target);
+        SlimefunItem sf = BlockStorage.check(target);
         if (sf != null) {
             ItemStack icon = sf.getItem().clone();
             stack = new CustomItemStack(
@@ -249,11 +249,11 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             }
 
             @Override
-            public void tick(Block monitor, SlimefunItem item, SlimefunBlockData data) {
+            public void tick(Block monitor, SlimefunItem item, Config data) {
                 if (!FIRST_TICK.getBoolean(monitor.getLocation())) {
-                    listen(monitor, relative(monitor, data.getData(BS_TARGET_FACE)));
+                    listen(monitor, relative(monitor, data.getString(BS_TARGET_FACE)));
                 }
-                BlockMenu menu = data.getBlockMenu();
+                BlockMenu menu = BlockStorage.getInventory(monitor);
                 if (menu != null && menu.hasViewer()) {
                     updateMenu(menu, monitor, data);
                 }
@@ -262,16 +262,14 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         addItemHandler(new BlockPlaceHandler(false) {
             @Override
             public void onPlayerPlace(BlockPlaceEvent event) {
-                SlimefunBlockData data = StorageCacheUtils.getBlock(event.getBlock().getLocation());
-                data.setData(BS_TARGET_FACE, DEFAULT_FACE);
+                BlockStorage.addBlockInfo(event.getBlock(), BS_TARGET_FACE, DEFAULT_FACE);
             }
         });
         addItemHandler(new BlockBreakHandler(false, false) {
             @Override
             public void onPlayerBreak(BlockBreakEvent event, ItemStack itemStack, List<ItemStack> list) {
                 Block block = event.getBlock();
-                SlimefunBlockData data = StorageCacheUtils.getBlock(block.getLocation());
-                unlisten(relative(block, data.getData(BS_TARGET_FACE)));
+                unlisten(relative(block, BlockStorage.getLocationInfo(event.getBlock().getLocation(), BS_TARGET_FACE)));
                 removeHologram(block);
             }
         });
@@ -284,21 +282,21 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
 
             @Override
             public void newInstance(@NotNull BlockMenu menu, @NotNull Block monitor) {
-                SlimefunBlockData data = StorageCacheUtils.getBlock(monitor.getLocation());
+                Config data = BlockStorage.getLocationInfo(monitor.getLocation());
                 menu.addMenuOpeningHandler(p -> updateMenu(menu, monitor, data));
                 for (Pair<String, String> pair : FACES) {
                     String label = pair.first();
                     String face = pair.second();
-                    menu.addItem(TEMPLATE.getChar(label), getDisplayIcon(relative(monitor, face), face, face.equals(data.getData(BS_TARGET_FACE))), (p2, s, i, a) -> {
-                        unlisten(relative(monitor, data.getData(BS_TARGET_FACE)));
-                        data.setData(BS_TARGET_FACE, face);
+                    menu.addItem(TEMPLATE.getChar(label), getDisplayIcon(relative(monitor, face), face, face.equals(data.getString(BS_TARGET_FACE))), (p2, s, i, a) -> {
+                        unlisten(relative(monitor, data.getString(BS_TARGET_FACE)));
+                        BlockStorage.addBlockInfo(monitor, BS_TARGET_FACE, face);
                         listen(monitor, relative(monitor, face));
                         updateMenu(menu, monitor, data);
                         return false;
                     });
                 }
                 menu.addMenuClickHandler(TEMPLATE.getChar("C"), (p, s, i, a) -> {
-                    SlimefunTimeit.monitor().removeData(relative(monitor, data.getData(BS_TARGET_FACE)));
+                    SlimefunTimeit.monitor().removeData(relative(monitor, data.getString(BS_TARGET_FACE)));
                     p.sendMessage(ChatColors.color("&a已清除缓存"));
                     return false;
                 });
@@ -316,11 +314,11 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         };
     }
 
-    private void updateMenu(BlockMenu menu, Block monitor, SlimefunBlockData data) {
+    private void updateMenu(BlockMenu menu, Block monitor, Config data) {
         for (Pair<String, String> pair : FACES) {
             String label = pair.first();
             String face = pair.second();
-            menu.addItem(TEMPLATE.getChar(label), getDisplayIcon(relative(monitor, face), face, face.equals(data.getData(BS_TARGET_FACE))));
+            menu.addItem(TEMPLATE.getChar(label), getDisplayIcon(relative(monitor, face), face, face.equals(data.getString(BS_TARGET_FACE))));
         }
     }
 

@@ -2,7 +2,6 @@ package com.balugaq.sftimeit.api;
 
 import com.balugaq.sftimeit.core.Monitor;
 import com.balugaq.sftimeit.core.SlimefunTimeit;
-import com.xzavier0722.mc.plugin.slimefun4.storage.controller.SlimefunBlockData;
 import io.github.thebusybiscuit.slimefun4.api.exceptions.IncompatibleItemHandlerException;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemHandler;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
@@ -43,14 +42,6 @@ public class MonitoringBlockTicker extends BlockTicker {
         return ticker.isSynchronized();
     }
 
-    @Override
-    public void tick(Block b, SlimefunItem item, SlimefunBlockData data) {
-        monitor.onTickStart(b.getLocation());
-        ticker.tick(b, item, data);
-        monitor.onTickEnd(b.getLocation());
-    }
-
-    @SuppressWarnings("deprecation")
     @Override
     public void tick(Block b, SlimefunItem item, Config data) {
         monitor.onTickStart(b.getLocation());
