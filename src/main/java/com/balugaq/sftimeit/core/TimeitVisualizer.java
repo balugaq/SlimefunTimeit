@@ -4,6 +4,7 @@ import com.balugaq.sftimeit.api.BlockSetting;
 import com.balugaq.sftimeit.api.DoubleHologramOwner;
 import com.balugaq.sftimeit.api.MenuMatrix;
 import com.balugaq.sftimeit.api.Pair;
+import com.balugaq.sftimeit.util.Converter;
 import com.balugaq.sftimeit.util.Icons;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
@@ -13,7 +14,6 @@ import io.github.thebusybiscuit.slimefun4.core.handlers.BlockBreakHandler;
 import io.github.thebusybiscuit.slimefun4.core.handlers.BlockPlaceHandler;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
@@ -22,6 +22,7 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -142,34 +143,34 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
         SlimefunItem sf = BlockStorage.check(target);
         if (sf != null) {
             ItemStack icon = sf.getItem().clone();
-            stack = new CustomItemStack(
+            stack = Converter.getItem(
                 icon,
-                "&7选择机器: " + sf.getItemName()
+                "&7Choose machine: " + sf.getItemName()
             );
             additionLore = icon.getLore();
             if (additionLore == null) additionLore = new ArrayList<>();
         } else {
-            stack = new CustomItemStack(
+            stack = Converter.getItem(
                 Material.BLACK_STAINED_GLASS_PANE,
-                "&7选择方向: " + localizeFace(face)
+                "&7Choose direction: " + localizeFace(face)
             );
             additionLore = new ArrayList<>();
         }
 
         additionLore.add("");
-        additionLore.add(ChatColors.color(selected ? "&a已选择此机器" : "&7点击选择此机器"));
+        additionLore.add(ChatColors.color(selected ? "&aSelected" : "&7Click to select"));
         stack.setLore(additionLore);
         return stack;
     }
 
     private static String localizeFace(String face) {
         return switch (face) {
-            case BS_NORTH -> "北";
-            case BS_EAST -> "东";
-            case BS_SOUTH -> "南";
-            case BS_WEST -> "西";
-            case BS_UP -> "上";
-            case BS_DOWN -> "下";
+            case BS_NORTH -> "North";
+            case BS_EAST -> "East";
+            case BS_SOUTH -> "South";
+            case BS_WEST -> "West";
+            case BS_UP -> "Up";
+            case BS_DOWN -> "Down";
             default -> face;
         };
     }
@@ -269,7 +270,9 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
             public void onPlayerBreak(BlockBreakEvent event, ItemStack itemStack, List<ItemStack> list) {
                 Block block = event.getBlock();
                 unlisten(relative(block, BlockStorage.getLocationInfo(event.getBlock().getLocation(), BS_TARGET_FACE)));
-                removeHologram(block);
+                Bukkit.getScheduler().runTaskLater(SlimefunTimeit.instance(), () -> {
+                    removeHologram(block);
+                }, 10L);
             }
         });
 
@@ -296,7 +299,7 @@ public class TimeitVisualizer extends SlimefunItem implements DoubleHologramOwne
                 }
                 menu.addMenuClickHandler(TEMPLATE.getChar("C"), (p, s, i, a) -> {
                     SlimefunTimeit.monitor().removeData(relative(monitor, data.getString(BS_TARGET_FACE)));
-                    p.sendMessage(ChatColors.color("&a已清除缓存"));
+                    p.sendMessage(ChatColors.color("&aCleared Cache"));
                     return false;
                 });
             }

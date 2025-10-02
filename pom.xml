@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.balugaq.sftimeit</groupId>
     <artifactId>SlimefunTimeit</artifactId>
-    <version>Official-1</version>
+    <version>Official-3</version>
 
     <pluginRepositories>
         <pluginRepository>
